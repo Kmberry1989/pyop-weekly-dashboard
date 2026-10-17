@@ -258,7 +258,7 @@
     <main>
       <header class="masthead">
         <div>
-          <p class="eyebrow" id="week-eyebrow">Week 05 · Oct 5–12, 2026</p>
+          <p class="eyebrow" id="week-eyebrow">Week 06 · Oct 12–17, 2026</p>
           <h1>Who’s making the strongest impression?</h1>
         </div>
         <p class="mast-note">Ten Indiana paint-your-own-pottery studios, scored on a common 1–10 scale. Orange keeps Fired Arts Studio—the home team—in view through every comparison.</p>
@@ -266,7 +266,8 @@
 
       <nav class="week-nav" aria-label="Dashboard week">
         <div class="week-tabs">
-          <button class="week-tab" type="button" data-week-button="2026-10-12" aria-pressed="true">Oct 12 <span class="latest-tag">Latest</span></button>
+          <button class="week-tab" type="button" data-week-button="2026-10-17" aria-pressed="true">Oct 17 <span class="latest-tag">Latest</span></button>
+          <button class="week-tab" type="button" data-week-button="2026-10-12" aria-pressed="false">Oct 12</button>
           <button class="week-tab" type="button" data-week-button="2026-10-05" aria-pressed="false">Oct 5</button>
           <button class="week-tab" type="button" data-week-button="2026-09-28" aria-pressed="false">Sept 28</button>
           <button class="week-tab" type="button" data-week-button="2026-09-21" aria-pressed="false">Sept 21</button>
@@ -279,7 +280,27 @@
         </div>
       </nav>
 
-      <div class="week-pane" data-week-pane="2026-10-12">
+      <div class="week-pane" data-week-pane="2026-10-17">
+        <section class="scorecards" aria-label="Oct 17 weekly ranking scorecards">
+          <article class="scorecard" data-category="reach"><div class="card-head"><span class="card-number">01</span><h2>Social media reach</h2><p class="definition">Audience size, visibility and posting cadence. Public engagement signals inform the score.</p></div><div class="chart-wrap"><svg class="chart" data-week="2026-10-17" data-chart="reach" role="img"></svg></div><ol class="rationale-list" data-week="2026-10-17" data-rationales="reach"></ol></article>
+          <article class="scorecard" data-category="effort"><div class="card-head"><span class="card-number">02</span><h2>Promotional effort</h2><p class="definition">Effort only: how clearly and consistently each studio promotes—without rewarding audience size or reach.</p></div><div class="chart-wrap"><svg class="chart" data-week="2026-10-17" data-chart="effort" role="img"></svg></div><ol class="rationale-list" data-week="2026-10-17" data-rationales="effort"></ol></article>
+          <article class="scorecard" data-category="storefront"><div class="card-head"><span class="card-number">03</span><h2>Digital storefront</h2><p class="definition">Website usefulness, pricing transparency and how easily a new customer can find an event or book.</p></div><div class="chart-wrap"><svg class="chart" data-week="2026-10-17" data-chart="storefront" role="img"></svg></div><ol class="rationale-list" data-week="2026-10-17" data-rationales="storefront"></ol></article>
+        </section>
+
+        <section aria-labelledby="trend-title-1017">
+          <div class="section-title"><h2 id="trend-title-1017">Ranking trend lines</h2><p>Each line uses the same 1–10 scale across all six sweeps: Sept 19, Sept 21, Sept 28, Oct 5, Oct 12 and Oct 17. Fired Arts stays highlighted in orange.</p></div>
+          <div class="trend-legend" aria-hidden="true"><span>Sept 19</span><span>Sept 21</span><span>Sept 28</span><span>Oct 5</span><span>Oct 12</span><span>Oct 17</span></div>
+          <div class="trend-grid" data-trend-weeks="2026-09-19,2026-09-21,2026-09-28,2026-10-05,2026-10-12,2026-10-17"></div>
+        </section>
+
+        <section class="source-panel" aria-label="Method and limitations">
+          <div class="home-summary"><h3>Home-team read</h3><p><strong>6</strong> reach · <strong>8</strong> promotional effort · <strong>4</strong> digital storefront. Reach and effort ticked up on steady posting and five workshops, while weak pricing transparency and no visible booking flow pulled the storefront down.</p></div>
+          <div><h3>How the scores were built</h3><p>Fresh regrade of all ten studios from verified public websites and social activity through Oct 17, 2026. Promotional effort intentionally ignores audience size and engagement totals.</p></div>
+          <div><h3>Evaluation note</h3><p>Grinchy Kid’s Night Out was excluded from Fired Arts Studio’s evaluation this week.</p></div>
+        </section>
+      </div>
+
+      <div class="week-pane" data-week-pane="2026-10-12" hidden>
         <section class="scorecards" aria-label="Oct 12 weekly ranking scorecards">
           <article class="scorecard" data-category="reach"><div class="card-head"><span class="card-number">01</span><h2>Social media reach</h2><p class="definition">Audience size, visibility and posting cadence. Public engagement signals inform the score.</p></div><div class="chart-wrap"><svg class="chart" data-week="2026-10-12" data-chart="reach" role="img"></svg></div><ol class="rationale-list" data-week="2026-10-12" data-rationales="reach"></ol></article>
           <article class="scorecard" data-category="effort"><div class="card-head"><span class="card-number">02</span><h2>Promotional effort</h2><p class="definition">Effort only: how clearly and consistently each studio promotes—without rewarding audience size or reach.</p></div><div class="chart-wrap"><svg class="chart" data-week="2026-10-12" data-chart="effort" role="img"></svg></div><ol class="rationale-list" data-week="2026-10-12" data-rationales="effort"></ol></article>
@@ -615,23 +636,30 @@
     <script>
       const HOME = "Fired Arts Studio";
       const STUDIOS = ["Fired Arts Studio", "Oh Slip Ceramics", "Kiln Creations", "uPaint Pottery Studio", "Color Me Mine Carmel", "Pottery by You & More", "All Fired Up!", "Made in Muncie", "Elemental Art Studio", "MIYO"];
-      const weekLabels = { "2026-10-12": "Week 05 · Oct 5–12, 2026", "2026-10-05": "Week 04 · Sept 28–Oct 5, 2026", "2026-09-28": "Week 03 · Sept 21–28, 2026", "2026-09-21": "Week 02 · Sept 19–21, 2026", "2026-09-19": "Week 01 · Sept 12–19, 2026" };
-      const shortWeekLabels = { "2026-09-19": "Sept 19", "2026-09-21": "Sept 21", "2026-09-28": "Sept 28", "2026-10-05": "Oct 5", "2026-10-12": "Oct 12" };
+      const weekLabels = { "2026-10-17": "Week 06 · Oct 12–17, 2026", "2026-10-12": "Week 05 · Oct 5–12, 2026", "2026-10-05": "Week 04 · Sept 28–Oct 5, 2026", "2026-09-28": "Week 03 · Sept 21–28, 2026", "2026-09-21": "Week 02 · Sept 19–21, 2026", "2026-09-19": "Week 01 · Sept 12–19, 2026" };
+      const shortWeekLabels = { "2026-09-19": "Sept 19", "2026-09-21": "Sept 21", "2026-09-28": "Sept 28", "2026-10-05": "Oct 5", "2026-10-12": "Oct 12", "2026-10-17": "Oct 17" };
       const data = {
         "2026-09-19": { reach: [6,4,9,7,3,5,8,8,3,2], effort: [8,8,9,7,2,4,7,6,5,1], storefront: [6,6,9,8,5,3,6,6,4,4] },
         "2026-09-21": { reach: [6,4,9,7,3,5,7,8,4,2], effort: [6,5,9,4,2,3,5,5,6,1], storefront: [6,6,9,8,5,3,6,5,4,4] },
         "2026-09-28": { reach: [5,3,7,8,3,6,7,8,3,2], effort: [7,6,10,8,1,6,8,6,5,1], storefront: [6,7,8,8,5,3,5,5,4,4] },
         "2026-10-05": { reach: [5,3,8,6,2,4,8,9,3,3], effort: [7,7,9,7,2,3,6,8,5,2], storefront: [5,6,8,8,4,3,5,5,5,3] },
-        "2026-10-12": { reach: [5,3,9,6,3,4,7,9,4,2], effort: [8,6,9,6,4,4,6,7,5,3], storefront: [5,6,8,8,4,3,5,4,5,3] }
+        "2026-10-12": { reach: [5,3,9,6,3,4,7,9,4,2], effort: [8,6,9,6,4,4,6,7,5,3], storefront: [5,6,8,8,4,3,5,4,5,3] },
+        "2026-10-17": { reach: [6,2,8,7,3,5,6,8,3,2], effort: [8,3,9,9,4,4,7,7,2,3], storefront: [4,7,5,7,4,3,8,9,1,2] }
       };
       const trendData = {
         "2026-09-19": { reach: [6,4,9,7,3,5,8,8,3,2], effort: [8,8,9,7,2,4,7,6,5,1], storefront: [6,6,9,8,5,3,6,6,4,4] },
         "2026-09-21": { reach: [6,4,9,7,3,5,8,8,3,2], effort: [8,8,9,7,2,4,7,6,5,1], storefront: [6,6,9,8,5,3,6,6,4,4] },
         "2026-09-28": { reach: [6,4,9,7,3,5,8,8,3,2], effort: [8,8,9,7,2,4,7,6,5,1], storefront: [6,6,9,8,5,3,6,6,4,4] },
         "2026-10-05": { reach: [5,3,8,6,2,4,8,9,3,3], effort: [7,7,9,7,2,3,6,8,5,2], storefront: [5,6,8,8,4,3,5,5,5,3] },
-        "2026-10-12": { reach: [5,3,9,6,3,4,7,9,4,2], effort: [8,6,9,6,4,4,6,7,5,3], storefront: [5,6,8,8,4,3,5,4,5,3] }
+        "2026-10-12": { reach: [5,3,9,6,3,4,7,9,4,2], effort: [8,6,9,6,4,4,6,7,5,3], storefront: [5,6,8,8,4,3,5,4,5,3] },
+        "2026-10-17": { reach: [6,2,8,7,3,5,6,8,3,2], effort: [8,3,9,9,4,4,7,7,2,3], storefront: [4,7,5,7,4,3,8,9,1,2] }
       };
       const rationales = {
+        "2026-10-17": {
+          reach: ["5.6K FB/550 IG, ~8 posts, 10 likes best on Kiln Magic reel.","69 IG dormant, ~1K FB silent 2 months.","10K/10K largest reach, daily posts, but near-zero engagement (1-2 likes).","17K FB largest FB base, but only ~3 posts, 1-6 likes.","940 IG sub-1K, 2 likes best, FB unverifiable.","2K IG, 23 likes on holiday inventory post (best single post).","7.5K FB/2K IG, 23 likes on ladybug carousel, but 9-day posting gap.","7.6K FB/2.2K IG, 7 posts, best engagement 33 likes/13 comments on pumpkin post.","460 IG smallest, 4-7 likes, ~2K FB.","710 IG, 1 post in window, no FB found."],
+          effort: ["5 workshops, Fall Break Halloween Party 10/19, tree classes Oct 24–Dec 13, KAA partnership.","Dormant 2 months, standing offers only.","~20 October events, new $89 Kiln Kitchen Nov 7 partnership, off-site nights.","Villain’s Party Oct 23 ($10), full Nov-Dec pipeline thru Dec 18, PTO fundraiser.","Standing weekly promos, no new events in 2 weeks.","Holiday inventory shelved early, no events or classes.","Halloween BOGO pre-sale, weekly specials marketed, gift cards.","NEW LOCATION + Chamber ribbon cutting 10/01, Fall Break special hours, consistent cadence.","No new events, customer showcases only.","Expanded hours announced Oct 2, nothing else."],
+          storefront: ["Weak pricing (social only), no visible booking flow or events page.","Excellent homepage pricing, booking calendar, limited hours.","No on-site prices (GetOccasion only), homepage placeholder-text defect, no event calendar.","Partial pricing ($5-80 pieces), clear event calendar, phone-first booking.","Promos listed but no base prices, partial online booking.","No prices, no booking, walk-in only.","Good pricing (fees + party packages $22-28/child), event sign-up, deposits.","Excellent FAQ pricing ($5-100, no studio fee), party booking page.","No functional website.","No prices anywhere, phone-only booking."]
+        },
         "2026-10-12": {
           reach: ["+1 to 536; eight posts, but the best drew only 4 likes and comments were near zero.","Instagram handle unverifiable; no public social presence.","+19 to 2,317; the Construction Cone Day carousel drew 45 likes, the sweep’s top post.","Largest base at 3,048 but net −2; nine posts, with a 28-like best.","Net −3, an accelerating bleed; nine posts after dormancy drew 0–1 likes each.","+2, but near-silent.","+7 to 1,986; the employee spotlight drew 20 likes and 4 comments.","+30, the biggest gain; the plates-vs-bowls post drew 41 likes.","Flat at 448; four posts and zero comments.","Net −1; one post drew 1 like."],
           effort: ["Eight posts, First Friday recap reels, a weekly schedule card, an audience vote and Birch Trees Oct 20; dragged by duplicate Dec 5, dateless Grinchy and no website recap.","Website calendar maintained, with zero social distribution.","31 posts, two new priced Halloween events, a celebrity-invite reel, group-booking and email-list pushes, and a community partnership.","Nine posts; detailed Villain’s Party, a second ornament session, Friendsgiving Nov 20, Black Friday and Cyber Monday.","Nine posts broke a two-month dormancy and pushed holiday parties, but engagement stayed at zero.","A cryptic deadline post plus a weekly Google-review loop.","Halloween BOGO pre-sale, a social-friends exclusive, scarcity framing and an employee spotlight.","Smart Fall Break hours play and a new-address pin; dragged by unfixed address and 404 hygiene.","Four posts and a winter-wonderland tease; steady.","Second post in two weeks after months dormant."],
