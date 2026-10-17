@@ -1,0 +1,715 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#f7f7f3" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#101516" media="(prefers-color-scheme: dark)" />
+    <link rel="icon" href="data:," />
+    <title>PYOP Weekly Dashboard</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #f7f7f3;
+        --surface: #ffffff;
+        --surface-2: #f0f1ed;
+        --ink: #172022;
+        --muted: #536064;
+        --faint: #dfe3dd;
+        --grid: #cdd4cf;
+        --bar: #1f7272;
+        --bar-strong: #185b5c;
+        --home: #e55f2d;
+        --home-soft: #fff0e9;
+        --lemon: #d8ee52;
+        --lemon-ink: #2d3500;
+        --loss: #a33b45;
+        --loss-soft: #fff0f1;
+        --shadow: 0 18px 45px rgba(21, 31, 32, .08);
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #101516;
+          --surface: #182022;
+          --surface-2: #20292b;
+          --ink: #eef2ed;
+          --muted: #b3bfbd;
+          --faint: #313d3f;
+          --grid: #3f4b4c;
+          --bar: #63b8b3;
+          --bar-strong: #8bd2cd;
+          --home: #ff8354;
+          --home-soft: #3a241d;
+          --lemon: #d6ed50;
+          --lemon-ink: #273000;
+          --loss: #ff8993;
+          --loss-soft: #3c2024;
+          --shadow: 0 18px 50px rgba(0, 0, 0, .24);
+        }
+      }
+
+      * { box-sizing: border-box; }
+      html { background: var(--bg); }
+      body {
+        margin: 0;
+        min-width: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      button { font: inherit; }
+      main { width: min(1510px, 100%); margin: 0 auto; padding: clamp(20px, 3.4vw, 52px); }
+      .masthead {
+        display: grid;
+        grid-template-columns: minmax(0, 1.45fr) minmax(260px, .55fr);
+        gap: clamp(22px, 4vw, 60px);
+        align-items: end;
+        border-bottom: 1px solid var(--ink);
+        padding-bottom: 25px;
+      }
+      .eyebrow { margin: 0 0 10px; color: var(--muted); font: 600 12px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: .08em; text-transform: uppercase; }
+      h1 { margin: 0; max-width: 850px; font-size: clamp(38px, 6vw, 78px); line-height: .94; letter-spacing: -.055em; font-weight: 700; }
+      .mast-note { margin: 0; color: var(--muted); font-size: clamp(15px, 1.3vw, 18px); line-height: 1.5; }
+
+      .week-nav { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; padding: 17px 0 4px; }
+      .week-tabs { display: flex; flex-wrap: wrap; gap: 7px; }
+      .week-tab { border: 1px solid var(--grid); background: var(--surface); color: var(--ink); padding: 9px 12px; border-radius: 999px; cursor: pointer; font: 600 12px/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+      .week-tab[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+      .week-tab:focus-visible { outline: 3px solid var(--lemon); outline-offset: 2px; }
+      .latest-tag { display: inline-block; margin-left: 5px; color: var(--home); }
+      .legend { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; color: var(--muted); font-size: 13px; }
+      .legend b { color: var(--ink); font-weight: 600; }
+      .legend-item { display: inline-flex; align-items: center; gap: 8px; }
+      .swatch { width: 22px; height: 7px; background: var(--bar); border-radius: 99px; }
+      .swatch.home { background: var(--home); }
+      .week-pane[hidden] { display: none; }
+
+      .section-title { display: grid; grid-template-columns: minmax(0, .7fr) minmax(280px, 1fr); gap: 24px; align-items: end; margin: 33px 0 18px; padding-top: 25px; border-top: 1px solid var(--ink); }
+      .section-title h2 { margin: 0; font-size: clamp(28px, 3vw, 42px); }
+      .section-title p { margin: 0; color: var(--muted); line-height: 1.5; }
+
+      .scorecards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin-top: 18px; align-items: start; }
+      .scorecard { min-width: 0; background: var(--surface); box-shadow: var(--shadow); border-top: 5px solid var(--bar-strong); }
+      .scorecard[data-category="effort"] { border-top-color: var(--home); }
+      .scorecard[data-category="storefront"] { border-top-color: #96a51b; }
+      .card-head { padding: 22px 22px 17px; min-height: 145px; border-bottom: 1px solid var(--faint); }
+      .card-number { display: inline-flex; align-items: center; justify-content: center; width: 29px; height: 29px; border-radius: 50%; background: var(--lemon); color: var(--lemon-ink); font: 600 12px/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+      h2 { margin: 12px 0 6px; font-size: clamp(23px, 2.2vw, 31px); line-height: 1.04; letter-spacing: -.035em; }
+      .definition { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.45; }
+      .chart-wrap { padding: 15px 15px 12px; min-width: 0; }
+      .chart { display: block; width: 100%; min-width: 0; height: 520px; overflow: visible; }
+      .chart text, .delta-chart text { fill: var(--ink); font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      .chart .axis-text, .delta-chart .axis-text { fill: var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 10px; }
+      .chart .studio-label, .delta-chart .studio-label { font-size: 12px; font-weight: 500; }
+      .chart .studio-label.home, .delta-chart .studio-label.home { fill: var(--home); font-weight: 700; }
+      .chart .score-label, .delta-chart .score-label { fill: var(--ink); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; font-weight: 600; }
+      .chart .rank-label { fill: var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 9px; }
+      .chart .grid-line, .delta-chart .grid-line { stroke: var(--grid); stroke-width: 1; stroke-dasharray: 2 5; }
+      .chart .baseline, .delta-chart .baseline { stroke: var(--ink); stroke-width: 1; }
+      .chart .track, .delta-chart .track { fill: var(--surface-2); }
+      .chart .bar, .delta-chart .bar { fill: var(--bar); }
+      .chart .bar.leader, .delta-chart .bar.leader { fill: var(--bar-strong); }
+      .chart .bar.home, .delta-chart .bar.home { fill: var(--home); }
+      .delta-chart .bar.loss { fill: var(--loss); }
+      .chart .home-ring, .delta-chart .home-ring { fill: none; stroke: var(--home); stroke-width: 1.5; }
+      .rationale-list { list-style: none; margin: 0; padding: 3px 15px 17px; border-top: 1px solid var(--faint); }
+      .rationale-list li { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 8px; padding: 10px 2px; border-bottom: 1px solid var(--faint); }
+      .rationale-list li:last-child { border-bottom: 0; }
+      .rationale-list .score { color: var(--bar-strong); font: 600 12px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+      .rationale-list li.home .score, .rationale-list li.home strong { color: var(--home); }
+      .rationale-list strong { display: block; font-size: 13px; }
+      .rationale-list p { margin: 2px 0 0; color: var(--muted); font-size: 12px; line-height: 1.4; }
+
+      .delta-layout { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(260px, .65fr); gap: 18px; align-items: stretch; }
+      .panel { min-width: 0; background: var(--surface); box-shadow: var(--shadow); }
+      .panel-head { padding: 20px 22px 13px; border-bottom: 1px solid var(--faint); }
+      .panel-head h3 { margin: 0 0 5px; font-size: 20px; }
+      .panel-head p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.45; }
+      .delta-chart { display: block; width: 100%; height: 520px; padding: 8px 10px 10px; }
+      .side-metrics { display: grid; gap: 18px; }
+      .metric-block { padding: 20px 22px; background: var(--surface); box-shadow: var(--shadow); }
+      .metric-block h3 { margin: 0 0 12px; font-size: 18px; }
+      .metric-list { list-style: none; margin: 0; padding: 0; }
+      .metric-list li { display: flex; justify-content: space-between; gap: 16px; padding: 8px 0; border-top: 1px solid var(--faint); font-size: 13px; }
+      .metric-list li.home { color: var(--home); font-weight: 700; }
+      .metric-list span:last-child { text-align: right; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+      .data-note { margin: 10px 0 0; color: var(--muted); font-size: 12px; line-height: 1.45; }
+      .loss-note { color: var(--loss); font-weight: 600; }
+
+      .trend-grid { display: grid; gap: 10px; }
+      .trend-row { display: grid; grid-template-columns: minmax(160px, .75fr) repeat(3, minmax(170px, 1fr)); gap: 10px; align-items: center; padding: 12px 14px; background: var(--surface); border-top: 1px solid var(--faint); }
+      .trend-row.home { background: var(--home-soft); border-top-color: var(--home); }
+      .trend-studio { min-width: 0; font-weight: 600; }
+      .trend-studio small { display: block; margin-top: 3px; color: var(--muted); font: 500 10px/1.3 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+      .trend-cell { min-width: 0; display: grid; grid-template-columns: minmax(72px, .7fr) minmax(90px, 1fr); gap: 8px; align-items: center; }
+      .trend-cell b { font-size: 11px; line-height: 1.25; }
+      .spark { width: 100%; height: 48px; display: block; }
+      .spark .guide { stroke: var(--grid); stroke-width: 1; }
+      .spark .trend-line { stroke: var(--bar); stroke-width: 2; fill: none; }
+      .trend-row.home .spark .trend-line { stroke: var(--home); stroke-width: 3; }
+      .spark circle { fill: var(--surface); stroke: var(--bar); stroke-width: 2; }
+      .trend-row.home .spark circle { fill: var(--home-soft); stroke: var(--home); }
+      .spark text { fill: var(--ink); font: 600 10px/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+      .trend-legend { display: flex; justify-content: flex-end; gap: 35px; color: var(--muted); font: 500 10px/1.3 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; padding: 0 18px 7px; }
+
+      .editorial-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; }
+      .list-panel { min-width: 0; background: var(--surface); box-shadow: var(--shadow); padding: 22px; }
+      .list-panel h3 { margin: 0 0 14px; font-size: 21px; }
+      .activity-list, .event-list { list-style: none; margin: 0; padding: 0; }
+      .activity-list li { position: relative; padding: 13px 0 13px 30px; border-top: 1px solid var(--faint); color: var(--muted); font-size: 14px; line-height: 1.5; }
+      .activity-list li::before { content: attr(data-no); position: absolute; left: 0; top: 15px; color: var(--home); font: 600 11px/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+      .activity-list strong { color: var(--ink); }
+      .activity-list li.home { background: var(--home-soft); margin-inline: -10px; padding-inline: 40px 10px; }
+      .activity-list li.home::before { left: 10px; }
+      .event-list li { display: grid; grid-template-columns: 82px minmax(0, 1fr); gap: 13px; padding: 11px 0; border-top: 1px solid var(--faint); }
+      .event-list time { color: var(--bar-strong); font: 600 11px/1.35 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+      .event-list li.home time, .event-list li.home strong { color: var(--home); }
+      .event-list strong { display: block; font-size: 14px; line-height: 1.3; }
+      .event-list span { display: block; margin-top: 2px; color: var(--muted); font-size: 12px; line-height: 1.4; }
+      .demand { color: var(--bar-strong) !important; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-weight: 600; }
+
+      .strategy { margin-top: 28px; padding: 27px 0 4px; border-top: 1px solid var(--ink); }
+      .strategy-head { display: grid; grid-template-columns: minmax(0, .6fr) minmax(280px, 1fr); gap: 24px; align-items: end; margin-bottom: 18px; }
+      .strategy h2 { margin: 0; font-size: clamp(28px, 3vw, 42px); }
+      .strategy-head p { margin: 0; color: var(--muted); line-height: 1.5; }
+      .moves { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); border-top: 1px solid var(--faint); }
+      .moves li { min-width: 0; padding: 18px 16px 20px; border-right: 1px solid var(--faint); }
+      .moves li:first-child { padding-left: 0; }
+      .moves li:last-child { border-right: 0; padding-right: 0; }
+      .move-no { display: block; margin-bottom: 14px; color: var(--home); font: 600 12px/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+      .moves h3 { margin: 0 0 7px; font-size: 17px; line-height: 1.15; }
+      .moves p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.48; }
+
+      .stage-intel { margin-top: 28px; padding: 27px 0 4px; border-top: 1px solid var(--ink); }
+      .stage-intel-head { display: grid; grid-template-columns: minmax(0, .6fr) minmax(280px, 1fr); gap: 24px; align-items: end; margin-bottom: 18px; }
+      .stage-intel h2 { margin: 0; font-size: clamp(28px, 3vw, 42px); }
+      .stage-intel-head p { margin: 0; color: var(--muted); line-height: 1.5; }
+      .stage-lead { background: var(--home-soft); padding: 20px 22px; border-top: 4px solid var(--home); margin-bottom: 18px; }
+      .stage-lead strong { color: var(--home); }
+      .stage-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+      .stage-row { min-width: 0; background: var(--surface); padding: 15px 17px; border-top: 1px solid var(--faint); }
+      .stage-row.home { background: var(--home-soft); border-top-color: var(--home); }
+      .stage-row h3 { margin: 0 0 5px; font-size: 15px; }
+      .stage-row.home h3 { color: var(--home); }
+      .stage-row p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.45; }
+      .copy-strip { margin-top: 18px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--faint); }
+      .copy-strip article { padding: 17px 16px; border-right: 1px solid var(--faint); }
+      .copy-strip article:first-child { padding-left: 0; }
+      .copy-strip article:last-child { border-right: 0; padding-right: 0; }
+      .copy-strip b { display: block; margin-bottom: 5px; color: var(--bar-strong); font-size: 14px; }
+      .copy-strip p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.45; }
+
+      .source-panel { margin-top: 30px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, .65fr); gap: 24px; padding: 24px 0 10px; border-top: 1px solid var(--ink); }
+      .source-panel h3 { margin: 0 0 8px; font-size: 16px; line-height: 1.2; }
+      .source-panel p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.55; }
+      .home-summary { background: var(--home-soft); padding: 17px 18px; border-radius: 2px 18px 2px 2px; }
+      .home-summary strong { color: var(--home); }
+
+      @media (max-width: 1180px) {
+        .scorecards { grid-template-columns: 1fr; }
+        .card-head { min-height: 0; }
+        .chart { height: 500px; }
+        .trend-row { grid-template-columns: minmax(150px, .75fr) repeat(3, minmax(145px, 1fr)); }
+        .trend-cell { grid-template-columns: 1fr; gap: 2px; }
+        .moves { grid-template-columns: repeat(2, minmax(0, 1fr)); border-top: 0; }
+        .moves li, .moves li:first-child, .moves li:last-child { padding: 17px 16px; border: 1px solid var(--faint); margin: -1px 0 0 -1px; }
+      }
+
+      @media (max-width: 760px) {
+        main { padding: 19px 14px 34px; }
+        .masthead { grid-template-columns: 1fr; gap: 15px; padding-bottom: 19px; }
+        h1 { font-size: clamp(38px, 14vw, 59px); }
+        .week-nav { align-items: flex-start; }
+        .legend { width: 100%; }
+        .scorecards { margin-top: 12px; gap: 14px; }
+        .card-head { padding: 18px 16px 14px; }
+        h2 { font-size: 25px; }
+        .chart-wrap { padding: 9px 7px 10px; }
+        .chart { height: 526px; }
+        .section-title, .strategy-head, .stage-intel-head { grid-template-columns: 1fr; gap: 10px; }
+        .delta-layout, .editorial-grid, .source-panel, .stage-grid { grid-template-columns: 1fr; }
+        .copy-strip { grid-template-columns: 1fr; }
+        .copy-strip article, .copy-strip article:first-child, .copy-strip article:last-child { padding: 15px 0; border-width: 1px 0 0; }
+        .delta-chart { height: 526px; padding-inline: 4px; }
+        .trend-row { grid-template-columns: 1fr; gap: 8px; padding: 14px; }
+        .trend-cell { grid-template-columns: minmax(105px, .8fr) minmax(140px, 1fr); border-top: 1px solid var(--faint); padding-top: 5px; }
+        .trend-legend { display: none; }
+        .moves { grid-template-columns: 1fr; }
+        .moves li, .moves li:first-child, .moves li:last-child { padding: 16px 0; border-width: 1px 0 0; margin: 0; }
+        .source-panel { gap: 17px; margin-top: 22px; }
+        .event-list li { grid-template-columns: 72px minmax(0, 1fr); }
+      }
+
+      @media print {
+        body { background: #fff; color: #111; }
+        main { width: 100%; padding: 20px; }
+        .week-nav { display: none; }
+        .week-pane[hidden] { display: none !important; }
+        .scorecards { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .scorecard, .panel, .list-panel, .metric-block { box-shadow: none; border: 1px solid #bbb; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header class="masthead">
+        <div>
+          <p class="eyebrow" id="week-eyebrow">Week 05 · Oct 5–12, 2026</p>
+          <h1>Who’s making the strongest impression?</h1>
+        </div>
+        <p class="mast-note">Ten Indiana paint-your-own-pottery studios, scored on a common 1–10 scale. Orange keeps Fired Arts Studio—the home team—in view through every comparison.</p>
+      </header>
+
+      <nav class="week-nav" aria-label="Dashboard week">
+        <div class="week-tabs">
+          <button class="week-tab" type="button" data-week-button="2026-10-12" aria-pressed="true">Oct 12 <span class="latest-tag">Latest</span></button>
+          <button class="week-tab" type="button" data-week-button="2026-10-05" aria-pressed="false">Oct 5</button>
+          <button class="week-tab" type="button" data-week-button="2026-09-28" aria-pressed="false">Sept 28</button>
+          <button class="week-tab" type="button" data-week-button="2026-09-21" aria-pressed="false">Sept 21</button>
+          <button class="week-tab" type="button" data-week-button="2026-09-19" aria-pressed="false">Sept 19 baseline</button>
+        </div>
+        <div class="legend" aria-label="Chart legend">
+          <b>Score scale 1–10</b>
+          <span class="legend-item"><span class="swatch" aria-hidden="true"></span>Competitor</span>
+          <span class="legend-item"><span class="swatch home" aria-hidden="true"></span>Fired Arts Studio</span>
+        </div>
+      </nav>
+
+      <div class="week-pane" data-week-pane="2026-10-12">
+        <section class="scorecards" aria-label="Oct 12 weekly ranking scorecards">
+          <article class="scorecard" data-category="reach"><div class="card-head"><span class="card-number">01</span><h2>Social media reach</h2><p class="definition">Audience size, visibility and posting cadence. Public engagement signals inform the score.</p></div><div class="chart-wrap"><svg class="chart" data-week="2026-10-12" data-chart="reach" role="img"></svg></div><ol class="rationale-list" data-week="2026-10-12" data-rationales="reach"></ol></article>
+          <article class="scorecard" data-category="effort"><div class="card-head"><span class="card-number">02</span><h2>Promotional effort</h2><p class="definition">Effort only: how clearly and consistently each studio promotes—without rewarding audience size or reach.</p></div><div class="chart-wrap"><svg class="chart" data-week="2026-10-12" data-chart="effort" role="img"></svg></div><ol class="rationale-list" data-week="2026-10-12" data-rationales="effort"></ol></article>
+          <article class="scorecard" data-category="storefront"><div class="card-head"><span class="card-number">03</span><h2>Digital storefront</h2><p class="definition">Website usefulness, pricing transparency and how easily a new customer can find an event or book.</p></div><div class="chart-wrap"><svg class="chart" data-week="2026-10-12" data-chart="storefront" role="img"></svg></div><ol class="rationale-list" data-week="2026-10-12" data-rationales="storefront"></ol></article>
+        </section>
+
+        <section aria-labelledby="audience-title-1012">
+          <div class="section-title"><h2 id="audience-title-1012">Audience movement</h2><p>Instagram follower movement from Oct 5 to Oct 12. Three studios lost followers; Oh Slip’s handle could not be found. Facebook follower counts were login-walled for all ten studios.</p></div>
+          <div class="delta-layout">
+            <article class="panel"><div class="panel-head"><h3>Instagram net change</h3><p>Bars show this week’s change; labels show Oct 5 → Oct 12. Oh Slip is excluded because its current count is unverifiable.</p></div><svg class="delta-chart" data-delta-week="2026-10-12" role="img" aria-label="Instagram follower net change from Oct 5 to Oct 12"></svg></article>
+            <aside class="side-metrics">
+              <div class="metric-block"><h3>Current Instagram audience</h3><ul class="metric-list"><li class="home"><span>Fired Arts Studio</span><span>536</span></li><li><span>Oh Slip Ceramics</span><span>Unverifiable</span></li><li><span>Kiln Creations</span><span>2,317</span></li><li><span>uPaint Pottery Studio</span><span>3,048</span></li><li><span>Color Me Mine Carmel</span><span>898</span></li><li><span>Pottery by You &amp; More</span><span>1,945</span></li><li><span>All Fired Up!</span><span>1,986</span></li><li><span>Made in Muncie</span><span>2,162</span></li><li><span>Elemental Art Studio</span><span>448</span></li><li><span>MIYO</span><span>673</span></li></ul></div>
+              <div class="metric-block"><h3>Follower read</h3><ul class="metric-list"><li><span>Biggest gainer</span><span>Made in Muncie +30</span></li><li><span>Second biggest</span><span>Kiln Creations +19</span></li><li class="home"><span>Home team</span><span>Fired Arts +1</span></li><li><span>Accelerating bleed</span><span class="loss-note">CMM Carmel −3</span></li><li><span>Mild bleed</span><span class="loss-note">uPaint −2</span></li><li><span>Tiny loss</span><span class="loss-note">MIYO −1</span></li></ul><p class="data-note">Oh Slip’s baseline was 69, but its current Instagram handle and count were not verifiable. Facebook counts were login-walled.</p></div>
+            </aside>
+          </div>
+        </section>
+
+        <section aria-labelledby="trend-title-1012">
+          <div class="section-title"><h2 id="trend-title-1012">Ranking trend lines</h2><p>Each line uses the same 1–10 scale across all five sweeps: Sept 19, Sept 21, Sept 28, Oct 5 and Oct 12. Fired Arts stays highlighted in orange.</p></div>
+          <div class="trend-legend" aria-hidden="true"><span>Sept 19</span><span>Sept 21</span><span>Sept 28</span><span>Oct 5</span><span>Oct 12</span></div>
+          <div class="trend-grid" data-trend-weeks="2026-09-19,2026-09-21,2026-09-28,2026-10-05,2026-10-12"></div>
+        </section>
+
+        <section aria-labelledby="activity-title-1012">
+          <div class="section-title"><h2 id="activity-title-1012">This week in the market</h2><p>Verified public activity during Oct 5–12, with Fired Arts kept in view as the home team.</p></div>
+          <div class="editorial-grid">
+            <article class="list-panel"><h3>Activity highlights</h3><ol class="activity-list">
+              <li data-no="01"><strong>Kiln Creations dominated again:</strong> 31 posts, two new Halloween events and a 45-like Construction Cone Day community recap that outperformed class promos by about 10×.</li>
+              <li data-no="02"><strong>Made in Muncie:</strong> gained 30 followers—the sweep’s biggest jump—while the old address remains across its site and Instagram profile, and its Instagram website link returns a 404.</li>
+              <li data-no="03"><strong>Color Me Mine Carmel:</strong> woke from a two-month dormancy with nine Halloween posts, yet lost 3 followers and drew only 0–1 likes per post.</li>
+              <li data-no="04"><strong>uPaint Pottery Studio:</strong> showed a mild 2-follower bleed despite nine posts and a loaded November calendar.</li>
+              <li class="home" data-no="05"><strong>Fired Arts Studio:</strong> posted eight times, but engagement stayed near zero. Grinchy is broken for a third straight week, and the Dec 5 Vintage Tree card is duplicated.</li>
+            </ol></article>
+            <article class="list-panel"><h3>Verified event moves</h3><ol class="activity-list">
+              <li class="home" data-no="06"><strong>Fired Arts:</strong> added Birch Trees for Oct 20 after a zero-comment vote; launched a weekly schedule card for Oct 13, 14, 17 and 18.</li>
+              <li data-no="07"><strong>Kiln:</strong> added The Witch’s Boot Light-Up, $68 on Oct 15, and Bat Night, $36 on Oct 17; confirmed Mushroom Bowl at $36/$42 on Oct 18; invited comedian Craig Robinson.</li>
+              <li data-no="08"><strong>uPaint:</strong> added Handprint Ornament Nov 17, Friendsgiving Nov 20, Black Friday Nov 27 and Cyber Monday Nov 30; Villain’s Painting Party is Oct 23, 6–9 p.m., $10 plus a piece.</li>
+              <li data-no="09"><strong>All Fired Up!:</strong> launched a social-friends Halloween BOGO pre-sale Oct 6—pottery half-off on the second item and mugs BOGO free.</li>
+              <li data-no="10"><strong>Others:</strong> Made in Muncie ran Fall Break hours Oct 5–6; Pottery by You pushed Oct 16 Midnight Madness off-site; CMM pushed holiday parties; Elemental teased its winter switch.</li>
+            </ol></article>
+          </div>
+        </section>
+
+        <section class="stage-intel" aria-labelledby="stage-title-1012">
+          <div class="stage-intel-head"><h2 id="stage-title-1012">WatchFire stage intel</h2><p>Where WatchFire leads—and the strongest workflow ideas worth adapting from competitors.</p></div>
+          <div class="stage-lead"><strong>WatchFire leads:</strong> no studio shows QR self-registration, tracking software or a self-serve status page.</div>
+          <div class="stage-grid">
+            <article class="stage-row home"><h3>Fired Arts Studio</h3><p>Nothing published; no FAQ page.</p></article>
+            <article class="stage-row"><h3>Oh Slip Ceramics</h3><p>Nothing published.</p></article>
+            <article class="stage-row"><h3>Kiln Creations</h3><p>Staff intake + Occasion, about one-week turnaround, and two email-list pushes.</p></article>
+            <article class="stage-row"><h3>uPaint Pottery Studio</h3><p>Staff intake + Eventbrite, five-to-seven-day turnaround, and shipping offered.</p></article>
+            <article class="stage-row"><h3>Color Me Mine Carmel</h3><p>Reservations for two event types only; walk-in pickup.</p></article>
+            <article class="stage-row"><h3>Pottery by You &amp; More</h3><p>Walk-in only; weekly Google-review feature loop worth copying.</p></article>
+            <article class="stage-row"><h3>All Fired Up!</h3><p>About one week ready; one old review flags no organizational system at pickup.</p></article>
+            <article class="stage-row"><h3>Made in Muncie</h3><p>Pickup by phone call—“we’ll call you as soon as your treasure is ready”—with a seven-to-ten-day turnaround.</p></article>
+            <article class="stage-row"><h3>Elemental Art Studio</h3><p>Hand-applied clear coat before firing; cash, check or Venmo.</p></article>
+            <article class="stage-row"><h3>MIYO</h3><p>Published abandonment policy: unclaimed pieces sell for $1 each at its first-Friday-in-May event; some are held for years.</p></article>
+          </div>
+          <div class="copy-strip" aria-label="WatchFire copy candidates">
+            <article><b>Automate the phone call</b><p>Adapt Made in Muncie’s pickup notification as an automatic WatchFire message.</p></article>
+            <article><b>Close the review loop</b><p>Adapt Pottery by You’s weekly review feature at pickup.</p></article>
+            <article><b>Publish the forfeit rule</b><p>Adapt MIYO’s clear $1-May abandonment policy.</p></article>
+          </div>
+        </section>
+
+        <section class="source-panel" aria-label="Reviews, method and limitations">
+          <div><h3>Reviews this week</h3><p>No reviews were verifiably dated Oct 5–12 for any studio, and no studio responses surfaced. Aggregates were unchanged: Fired Arts ~4.7–4.8; Kiln 5.0/107; uPaint 4.6/95; All Fired Up! 4.7/~261; Made in Muncie 4.9/~449; Color Me Mine Carmel 4.3/91; Pottery by You 4.8/150; Elemental 4.9/12. None were findable for Oh Slip; none were dated for MIYO.</p></div>
+          <div class="home-summary"><h3>Home-team read</h3><p><strong>5</strong> reach · <strong>8</strong> promotional effort · <strong>5</strong> digital storefront. Eight posts and a weekly schedule strengthened promotion, while weak engagement and two broken listings held reach and storefront back.</p></div>
+          <div><h3>How the scores were built</h3><p>Analytical ratings from verified public studio websites and Instagram activity during Oct 5–12, 2026. Promotional effort intentionally ignores audience size and engagement totals.</p></div>
+          <div><h3>Access notes</h3><p>Facebook follower counts were login-walled. Oh Slip’s Instagram handle could not be found, so its current count and net change are not shown.</p></div>
+        </section>
+
+        <section class="strategy" aria-labelledby="strategy-title-1012">
+          <div class="strategy-head"><h2 id="strategy-title-1012">Fired Arts: next moves</h2><p>Five priorities from the Oct 5–12 competitive sweep.</p></div>
+          <ol class="moves">
+            <li><span class="move-no">01</span><h3>Fix the event rot</h3><p>Repair Grinchy Kid’s Night Out and remove the duplicate Dec 5 card this week. The dateless event has carried the old address for three straight weeks.</p></li>
+            <li><span class="move-no">02</span><h3>Start a review loop</h3><p>Copy Pottery by You’s “Leave a google review to be featured next Monday!” prompt. It is a zero-cost engine, and Fired Arts already sits near 4.8.</p></li>
+            <li><span class="move-no">03</span><h3>Own First Friday online</h3><p>Turn the Oct 2 scarecrow recap into a website carousel, then make every First Friday a recurring community anchor.</p></li>
+            <li><span class="move-no">04</span><h3>Honor the vote visibly</h3><p>The would-you-rather vote got zero comments. Next time, paint only the winning option and credit voters when the class launches.</p></li>
+            <li><span class="move-no">05</span><h3>Sell holiday groups now</h3><p>Mirror Color Me Mine’s early holiday-party push with the eight-date Vintage Tree series. Use scarcity framing for corporate and group dates.</p></li>
+          </ol>
+        </section>
+      </div>
+
+      <div class="week-pane" data-week-pane="2026-10-05" hidden>
+        <section class="scorecards" aria-label="Oct 5 weekly ranking scorecards">
+          <article class="scorecard" data-category="reach"><div class="card-head"><span class="card-number">01</span><h2>Social media reach</h2><p class="definition">Audience size, visibility and posting cadence. Public engagement signals inform the score.</p></div><div class="chart-wrap"><svg class="chart" data-week="2026-10-05" data-chart="reach" role="img"></svg></div><ol class="rationale-list" data-week="2026-10-05" data-rationales="reach"></ol></article>
+          <article class="scorecard" data-category="effort"><div class="card-head"><span class="card-number">02</span><h2>Promotional effort</h2><p class="definition">Effort only: how clearly and consistently each studio promotes—without rewarding audience size or reach.</p></div><div class="chart-wrap"><svg class="chart" data-week="2026-10-05" data-chart="effort" role="img"></svg></div><ol class="rationale-list" data-week="2026-10-05" data-rationales="effort"></ol></article>
+          <article class="scorecard" data-category="storefront"><div class="card-head"><span class="card-number">03</span><h2>Digital storefront</h2><p class="definition">Website usefulness, pricing transparency and how easily a new customer can find an event or book.</p></div><div class="chart-wrap"><svg class="chart" data-week="2026-10-05" data-chart="storefront" role="img"></svg></div><ol class="rationale-list" data-week="2026-10-05" data-rationales="storefront"></ol></article>
+        </section>
+
+        <section aria-labelledby="audience-title-1005">
+          <div class="section-title"><h2 id="audience-title-1005">Audience movement</h2><p>Exact Instagram follower counts from Sept 28 to Oct 5. Color Me Mine Carmel was the only studio with a net loss; Facebook follower and event-response counts were not publicly verifiable.</p></div>
+          <div class="delta-layout">
+            <article class="panel"><div class="panel-head"><h3>Instagram net change</h3><p>Bars show this week’s change; labels show Sept 28 → Oct 5.</p></div><svg class="delta-chart" data-delta-week="2026-10-05" role="img" aria-label="Instagram follower net change from Sept 28 to Oct 5"></svg></article>
+            <aside class="side-metrics">
+              <div class="metric-block"><h3>Current Instagram audience</h3><ul class="metric-list"><li class="home"><span>Fired Arts Studio</span><span>535</span></li><li><span>Oh Slip Ceramics</span><span>69</span></li><li><span>Kiln Creations</span><span>2,298</span></li><li><span>uPaint Pottery Studio</span><span>3,050</span></li><li><span>Color Me Mine Carmel</span><span>901</span></li><li><span>Pottery by You &amp; More</span><span>1,943</span></li><li><span>All Fired Up!</span><span>1,979</span></li><li><span>Made in Muncie</span><span>2,132</span></li><li><span>Elemental Art Studio</span><span>448</span></li><li><span>MIYO</span><span>674</span></li></ul></div>
+              <div class="metric-block"><h3>Follower read</h3><ul class="metric-list"><li><span>Biggest gainer</span><span>Made in Muncie +27</span></li><li><span>Second biggest</span><span>All Fired Up! +8</span></li><li class="home"><span>Home team</span><span>Fired Arts +1</span></li><li><span>Only loss</span><span class="loss-note">CMM Carmel −1</span></li></ul><p class="data-note">Facebook profiles were login-walled. Interested/Going counts were also unavailable; public event search returned zero upcoming Facebook events for All Fired Up! and Made in Muncie.</p></div>
+            </aside>
+          </div>
+        </section>
+
+        <section aria-labelledby="trend-title-1005">
+          <div class="section-title"><h2 id="trend-title-1005">Ranking trend lines</h2><p>Each line uses the same 1–10 scale across four sweeps: Sept 19, Sept 21, Sept 28 and Oct 5. Fired Arts stays highlighted in orange.</p></div>
+          <div class="trend-legend" aria-hidden="true"><span>Sept 19</span><span>Sept 21</span><span>Sept 28</span><span>Oct 5</span></div>
+          <div class="trend-grid" data-trend-weeks="2026-09-19,2026-09-21,2026-09-28,2026-10-05"></div>
+        </section>
+
+        <section aria-labelledby="activity-title-1005">
+          <div class="section-title"><h2 id="activity-title-1005">This week in the market</h2><p>Verified public activity during Sept 28–Oct 5, with Fired Arts kept in view as the home team.</p></div>
+          <div class="editorial-grid">
+            <article class="list-panel"><h3>Activity highlights</h3><ol class="activity-list">
+              <li class="home" data-no="01"><strong>Fired Arts Studio:</strong> posted four times. Its Sept 29 First Friday scarecrow-hunt reel led with 5 likes. No verified recap of the Oct 2 First Friday surfaced; one Oct 3 image had no retrievable caption.</li>
+              <li class="home" data-no="02"><strong>Fired Arts Studio:</strong> grew its events page to 18 listings—9 new since last week. Vintage Tree Painting expanded from six to eight dates with Nov 27 and Dec 5 added.</li>
+              <li class="home" data-no="03"><strong>Fired Arts Studio:</strong> Grinchy Kid’s Night Out remains dateless with “No time slots available,” is absent from /upcoming-workshops, and still shows an outdated address.</li>
+              <li data-no="04"><strong>Kiln Creations:</strong> published 24 posts and added eight dated offers, including Haunted Fairy Door ($45), Ghosts &amp; Goodies ($68), Silly Goose Night after an audience poll, Kiln Kitchen’s “A Day in Tuscany,” and Plant Bingo.</li>
+              <li data-no="05"><strong>Made in Muncie:</strong> gained 27 followers to 2,132. Its Oct 2 ribbon-cutting recap carousel earned 244 likes—the sweep’s top post—while an outdated address remains across the website.</li>
+            </ol></article>
+            <article class="list-panel"><h3>More market signals</h3><ol class="activity-list">
+              <li data-no="06"><strong>All Fired Up!:</strong> gained 8 followers to 1,979; its shipment-day reel drew 17 likes and cosmic bisque line 18. The flash sale closed without a follow-up.</li>
+              <li data-no="07"><strong>uPaint Pottery Studio:</strong> posted eight times; its Sept 30 reel led with 33 likes. Villain’s Painting Party is Oct 23, 6–9 p.m., $10 plus pottery—not Oct 5. Home School Art Day runs Oct 5, 1–2 p.m., for $18.</li>
+              <li data-no="08"><strong>Oh Slip Ceramics:</strong> posted nothing to Instagram but added seven website sessions. The Nov 14 Kids Day appears twice.</li>
+              <li data-no="09"><strong>Pottery by You, Elemental and MIYO:</strong> Pottery by You posted one silent story; Elemental announced an Oct 10 Chili Cook-Off closure and shared customer frog work; MIYO posted for the first time in months and is now open Sundays.</li>
+              <li data-no="10"><strong>Color Me Mine Carmel:</strong> lost one follower—the only decline—and remains dormant since Aug 5, with homepage news from April.</li>
+            </ol></article>
+          </div>
+        </section>
+
+        <section class="source-panel" aria-label="Reviews, method and limitations">
+          <div><h3>Reviews this week</h3><p>No reviews with verifiable dates surfaced for any studio during Sept 28–Oct 5. Aggregates: Fired Arts ~4.8 (21/36 by source), Kiln 5.0 (107), uPaint 4.6 (95), Pottery by You ~4.8 (150), All Fired Up! ~4.7 (261), Made in Muncie ~4.9 (449), Color Me Mine Carmel 4.3 (91), Elemental 4.9 (12); none surfaced for Oh Slip or MIYO.</p></div>
+          <div class="home-summary"><h3>Home-team read</h3><p><strong>5</strong> reach · <strong>7</strong> promotional effort · <strong>5</strong> digital storefront. Nine new event listings helped promotion, while a missing recap, hidden prices and the broken Grinchy path held the studio back.</p></div>
+          <div><h3>How the scores were built</h3><p>Analytical ratings from verified public studio websites and Instagram activity during Sept 28–Oct 5, 2026. Promotional effort intentionally ignores audience size and engagement totals.</p></div>
+          <div><h3>Names and access notes</h3><p>Kiln’s site is kilncreations.net. Instagram handles: @allfireduppottery, @madeinmuncie, @elementalartstudio and @makeityourownartstudio. Facebook counts and Interested/Going totals remained login-walled.</p></div>
+        </section>
+
+        <section class="strategy" aria-labelledby="strategy-title-1005">
+          <div class="strategy-head"><h2 id="strategy-title-1005">Fired Arts: next moves</h2><p>Five priorities from the Sept 28–Oct 5 competitive sweep.</p></div>
+          <ol class="moves">
+            <li><span class="move-no">01</span><h3>Fix Grinchy today</h3><p>Add a date, list the $28-per-child event on /upcoming-workshops and correct the old address on Occasion. Three weeks before Halloween, this is the highest-return funnel fix.</p></li>
+            <li><span class="move-no">02</span><h3>Post the First Friday recap</h3><p>Publish the Oct 2 recap within 24 hours. Made in Muncie’s 244-like recap was the week’s strongest post; Fired Arts’ best reached 5 likes.</p></li>
+            <li><span class="move-no">03</span><h3>Run a poll-to-class loop</h3><p>Ask which Christmas tree style to demo first, then announce the winner as a class within days—two posts from one idea for the eight-date Vintage Tree series.</p></li>
+            <li><span class="move-no">04</span><h3>Put prices on listings</h3><p>Kiln states $45–68 prices in captions and Oh Slip puts membership prices on its homepage. Fired Arts currently forces a click to reveal every price.</p></li>
+            <li><span class="move-no">05</span><h3>Raise October cadence</h3><p>Four posts versus Kiln’s 24: publish at least one event post and one in-studio or customer-work post each week, with no more recap gaps.</p></li>
+          </ol>
+        </section>
+      </div>
+
+      <div class="week-pane" data-week-pane="2026-09-28" hidden>
+        <section class="scorecards" aria-label="Sept 28 weekly ranking scorecards">
+          <article class="scorecard" data-category="reach"><div class="card-head"><span class="card-number">01</span><h2>Social media reach</h2><p class="definition">Audience size, visibility and posting cadence. Public engagement signals inform the score.</p></div><div class="chart-wrap"><svg class="chart" data-week="2026-09-28" data-chart="reach" role="img"></svg></div><ol class="rationale-list" data-week="2026-09-28" data-rationales="reach"></ol></article>
+          <article class="scorecard" data-category="effort"><div class="card-head"><span class="card-number">02</span><h2>Promotional effort</h2><p class="definition">Effort only: how clearly and consistently each studio promotes—without rewarding audience size or reach.</p></div><div class="chart-wrap"><svg class="chart" data-week="2026-09-28" data-chart="effort" role="img"></svg></div><ol class="rationale-list" data-week="2026-09-28" data-rationales="effort"></ol></article>
+          <article class="scorecard" data-category="storefront"><div class="card-head"><span class="card-number">03</span><h2>Digital storefront</h2><p class="definition">Website usefulness, pricing transparency and how easily a new customer can find an event or book.</p></div><div class="chart-wrap"><svg class="chart" data-week="2026-09-28" data-chart="storefront" role="img"></svg></div><ol class="rationale-list" data-week="2026-09-28" data-rationales="storefront"></ol></article>
+        </section>
+
+        <section aria-labelledby="audience-title-0928">
+          <div class="section-title"><h2 id="audience-title-0928">Audience movement</h2><p>Exact Instagram follower counts from Sept 21 to Sept 28. No studio lost followers; Facebook follower and event-response counts remain unavailable behind login and server gates.</p></div>
+          <div class="delta-layout">
+            <article class="panel"><div class="panel-head"><h3>Instagram net change</h3><p>Bars show this week’s gain; labels show Sept 21 → Sept 28.</p></div><svg class="delta-chart" data-delta-week="2026-09-28" role="img" aria-label="Instagram follower net change from Sept 21 to Sept 28"></svg></article>
+            <aside class="side-metrics">
+              <div class="metric-block"><h3>Current Instagram audience</h3><ul class="metric-list"><li class="home"><span>Fired Arts Studio</span><span>534</span></li><li><span>Oh Slip Ceramics</span><span>67</span></li><li><span>Kiln Creations</span><span>2,296</span></li><li><span>uPaint Pottery Studio</span><span>3,050</span></li><li><span>Color Me Mine Carmel</span><span>902</span></li><li><span>Pottery by You &amp; More</span><span>1,943</span></li><li><span>All Fired Up!</span><span>1,971</span></li><li><span>Made in Muncie</span><span>2,105</span></li><li><span>Elemental Art Studio</span><span>448</span></li><li><span>MIYO</span><span>674</span></li></ul></div>
+              <div class="metric-block"><h3>Follower read</h3><ul class="metric-list"><li><span>Biggest gainer</span><span>Made in Muncie +18</span></li><li><span>Second biggest</span><span>All Fired Up! +12</span></li><li class="home"><span>Home team</span><span>Fired Arts +0</span></li><li><span>Studios losing followers</span><span>None</span></li></ul><p class="data-note">Facebook follower and Interested/Going counts could not be verified this week.</p></div>
+            </aside>
+          </div>
+        </section>
+
+        <section aria-labelledby="trend-title-0928">
+          <div class="section-title"><h2 id="trend-title-0928">Ranking trend lines</h2><p>Each line uses the same 1–10 scale across all three sweeps: Sept 19, Sept 21 and Sept 28. Fired Arts stays highlighted in orange.</p></div>
+          <div class="trend-legend" aria-hidden="true"><span>Sept 19</span><span>Sept 21</span><span>Sept 28</span></div>
+          <div class="trend-grid" data-trend-weeks="2026-09-19,2026-09-21,2026-09-28"></div>
+        </section>
+
+        <section aria-labelledby="activity-title-0928">
+          <div class="section-title"><h2 id="activity-title-0928">This week in the market</h2><p>Verified public activity during Sept 21–28, with Fired Arts kept in view as the home team.</p></div>
+          <div class="editorial-grid">
+            <article class="list-panel"><h3>Activity highlights</h3><ol class="activity-list">
+              <li class="home" data-no="01"><strong>Fired Arts Studio:</strong> made the Scarecrow Hunt partnership official. The First Friday Masquerade Paint-a-Little-Scarecrow runs Friday, Oct 2, 5:30–9 p.m.—$10 minis, walk-ins, and the studio is the KAA hunt form pickup point.</li>
+              <li class="home" data-no="02"><strong>Fired Arts Studio:</strong> announced six Vintage Tree Painting dates from Oct 24 through Dec 4. The September First Friday community mosaic is fired and heading to Courthouse Alley; Grinchy Kid’s Night Out remains $28 with no date.</li>
+              <li data-no="03"><strong>Kiln Creations:</strong> published 24 posts, launched the Kiln Kitchen food-and-painting series with Spice &amp; Tea Exchange for Nov 7, pushed its Oct 1 Corporate Showcase, and promoted Retro Halloween Portrait Tray, Beetlejuice Sandworm, bat night, Over the Wall Night and October Twitch lives.</li>
+              <li data-no="04"><strong>uPaint Pottery Studio:</strong> loaded its calendar with Ghost Hand Print Oct 1, Home School Art Day Oct 3, Villain’s Painting Party Oct 5 and a Moose kids’ event Nov 5. Its casual reel drew 65 likes.</li>
+              <li data-no="05"><strong>All Fired Up!:</strong> ran a three-day fall/Halloween BOGO half-off flash sale built on urgency, scarcity, mention-this-post redemption and tag-a-friend sharing.</li>
+            </ol></article>
+            <article class="list-panel"><h3>More market signals</h3><ol class="activity-list">
+              <li data-no="06"><strong>Made in Muncie:</strong> gained 18 followers and drew 113 likes on its new-location post ahead of the Oct 1 ribbon cutting. Its website still showed the old address.</li>
+              <li data-no="07"><strong>Pottery by You &amp; More:</strong> announced Midnight Madness Halloween for Oct 16, 9 p.m.–midnight, and pushed stoneware.</li>
+              <li data-no="08"><strong>Oh Slip Ceramics:</strong> posted nothing to Instagram, but added four events and a membership push to its website calendar.</li>
+              <li data-no="09"><strong>Elemental Art Studio:</strong> kept a pulse with one reel, fall showcases and a Paint-Your-Partner repeat tease.</li>
+              <li data-no="10"><strong>Quiet accounts:</strong> Color Me Mine Carmel has been dormant since Aug 5—about 7.5 weeks. MIYO remained dormant with part-time weekend hours.</li>
+            </ol></article>
+          </div>
+        </section>
+
+        <section class="source-panel" aria-label="Reviews, method and limitations">
+          <div><h3>Reviews this week</h3><p>No new Google or Facebook reviews could be verifiably dated Sept 21–28 for any of the ten studios.</p></div>
+          <div class="home-summary"><h3>Home-team read</h3><p><strong>5</strong> reach · <strong>7</strong> promotional effort · <strong>6</strong> digital storefront. Promotion improved behind the Scarecrow Hunt and six-date tree series; audience growth stayed flat.</p></div>
+          <div><h3>How the scores were built</h3><p>Analytical ratings from verified public studio websites and Instagram activity during Sept 21–28, 2026. Promotional effort intentionally ignores audience size and engagement totals.</p></div>
+          <div><h3>Data caveat</h3><p>Facebook follower counts and event Interested/Going totals remain login-walled or server-gated. Instagram counts are exact for both dates in this week’s comparison.</p></div>
+        </section>
+
+        <section class="strategy" aria-labelledby="strategy-title-0928">
+          <div class="strategy-head"><h2 id="strategy-title-0928">Fired Arts: next moves</h2><p>Five prioritized moves grounded in the Sept 21–28 competitive sweep.</p></div>
+          <ol class="moves">
+            <li><span class="move-no">01</span><h3>Date the Grinchy event</h3><p>Give Grinchy Kid’s Night Out a date and list it on /upcoming-workshops—competitors never promote dateless events.</p></li>
+            <li><span class="move-no">02</span><h3>Launch a crossover night</h3><p>Copy Kiln Kitchen with a food + pottery night and a Kokomo partner. First Friday week is the perfect debut.</p></li>
+            <li><span class="move-no">03</span><h3>Use flash-sale mechanics</h3><p>Adapt All Fired Up!’s three-day window, urgency, mention-this-post redemption and tag-a-friend prompt for Halloween bisque.</p></li>
+            <li><span class="move-no">04</span><h3>Post the recaps</h3><p>The fired First Friday mosaic and un-recapped Pirate Party are the customer-work content Kiln and Elemental ride.</p></li>
+            <li><span class="move-no">05</span><h3>Raise Instagram cadence</h3><p>Six posts versus Kiln’s 24: use the Halloween reel, Christmas tree series and Scarecrow Hunt as a natural content calendar.</p></li>
+          </ol>
+        </section>
+      </div>
+
+      <div class="week-pane" data-week-pane="2026-09-21" hidden>
+        <section class="scorecards" aria-label="Sept 21 weekly ranking scorecards">
+          <article class="scorecard" data-category="reach">
+            <div class="card-head"><span class="card-number">01</span><h2>Social media reach</h2><p class="definition">Audience size, visibility and posting cadence. Public engagement signals inform the score.</p></div>
+            <div class="chart-wrap"><svg class="chart" data-week="2026-09-21" data-chart="reach" role="img"></svg></div>
+            <ol class="rationale-list" data-week="2026-09-21" data-rationales="reach"></ol>
+          </article>
+          <article class="scorecard" data-category="effort">
+            <div class="card-head"><span class="card-number">02</span><h2>Promotional effort</h2><p class="definition">Effort only: how clearly and consistently each studio promotes—without rewarding audience size or reach.</p></div>
+            <div class="chart-wrap"><svg class="chart" data-week="2026-09-21" data-chart="effort" role="img"></svg></div>
+            <ol class="rationale-list" data-week="2026-09-21" data-rationales="effort"></ol>
+          </article>
+          <article class="scorecard" data-category="storefront">
+            <div class="card-head"><span class="card-number">03</span><h2>Digital storefront</h2><p class="definition">Website usefulness, pricing transparency and how easily a new customer can find an event or book.</p></div>
+            <div class="chart-wrap"><svg class="chart" data-week="2026-09-21" data-chart="storefront" role="img"></svg></div>
+            <ol class="rationale-list" data-week="2026-09-21" data-rationales="storefront"></ol>
+          </article>
+        </section>
+
+        <section aria-labelledby="audience-title">
+          <div class="section-title"><h2 id="audience-title">Audience movement</h2><p>Exact Instagram follower counts from the Sept 19 baseline to Sept 21. Facebook figures remain rounded carryovers because public counts are login-walled.</p></div>
+          <div class="delta-layout">
+            <article class="panel">
+              <div class="panel-head"><h3>Instagram net change</h3><p>Bars show change over the two-day window; labels show baseline → latest.</p></div>
+              <svg class="delta-chart" data-delta-week="2026-09-21" role="img" aria-label="Instagram follower net change from Sept 19 to Sept 21"></svg>
+            </article>
+            <aside class="side-metrics">
+              <div class="metric-block"><h3>Facebook, approximate</h3><ul class="metric-list">
+                <li class="home"><span>Fired Arts Studio</span><span>~5.6K</span></li><li><span>Oh Slip Ceramics</span><span>~930</span></li><li><span>Kiln Creations</span><span>~10K</span></li><li><span>All Fired Up!</span><span>~7.5K</span></li><li><span>Made in Muncie</span><span>~7.5K</span></li><li><span>Elemental Art Studio</span><span>~2K</span></li>
+              </ul><p class="data-note">Approximate figures carried from last week; not publicly re-verifiable this week.</p></div>
+              <div class="metric-block"><h3>Follower read</h3><ul class="metric-list"><li><span>Biggest gainer</span><span>Made in Muncie +8</span></li><li><span>Home team</span><span>Fired Arts +1</span></li><li><span>Only loss</span><span class="loss-note">CMM Carmel −1</span></li></ul></div>
+            </aside>
+          </div>
+        </section>
+
+        <section aria-labelledby="trend-title">
+          <div class="section-title"><h2 id="trend-title">Ranking trend lines</h2><p>Each line uses the same 1–10 scale and runs from Sept 19 to Sept 21. Fired Arts is highlighted; every studio stays in the same order for quick scanning.</p></div>
+          <div class="trend-legend" aria-hidden="true"><span>Sept 19</span><span>Sept 21</span></div>
+          <div class="trend-grid" data-trend-weeks="2026-09-19,2026-09-21"></div>
+        </section>
+
+        <section aria-labelledby="activity-title">
+          <div class="section-title"><h2 id="activity-title">This week in the market</h2><p>Publicly visible activity through Monday, Sept 21, plus upcoming events and demand signals.</p></div>
+          <div class="editorial-grid">
+            <article class="list-panel"><h3>Activity highlights</h3><ol class="activity-list">
+              <li class="home" data-no="01"><strong>Fired Arts Studio:</strong> Saturday’s Pirate Painting Party ran; Sunday’s “Canvas painting isn’t just Tuesday” Instagram carousel promoted daily canvas painting, with 0 likes and 0 comments shown.</li>
+              <li data-no="02"><strong>Kiln Creations dominated:</strong> 7 Instagram posts in 2 days. Its Sept 20 Bat Night promo led the set with 6 likes and 2 comments; it announced Lil Ghouls bingo, shared clay-recycling education and earned a Sept 21–27 editorial-list pickup.</li>
+              <li data-no="03"><strong>Oh Slip Ceramics:</strong> Book Swap and Paint Night ran Saturday. No new Instagram posts since Sept 16, but it holds the week’s fullest calendar.</li>
+              <li data-no="04"><strong>Made in Muncie:</strong> ribbon-cutting interest climbed to 13+ from 10+, while its website still lists the former studio address during the move to its new location.</li>
+              <li data-no="05"><strong>Elemental Art Studio:</strong> two posts—Sept 19 customer pieces drew 11 likes and 2 comments; Sept 20 featured an art-lesson student project. TicketTailor shows no events.</li>
+              <li data-no="06"><strong>uPaint Pottery Studio:</strong> one Sept 21 “Happy Monday” fall-mug post; a Swiftie Painting Party for Oct 24–25 is newly visible.</li>
+              <li data-no="07"><strong>Quiet:</strong> All Fired Up! had no follow-up after its flash sale; Color Me Mine Carmel has been dormant since Aug 5; Pottery by You & More remains static; MIYO has been dormant since May.</li>
+            </ol></article>
+            <article class="list-panel"><h3>Upcoming events + demand</h3><ul class="event-list">
+              <li><time>Sun 9/27<br>2 PM</time><div><strong>Kiln Creations — unidentified event</strong><span class="demand">37+ interested</span><span>allevents.in mirror; title not publicly verifiable</span></div></li>
+              <li><time>Wed 9/23<br>6 PM</time><div><strong>Kiln Creations — Retro Halloween Portraits</strong><span>@ The Craft Room Sheridan</span><span class="demand">14+ interested</span></div></li>
+              <li><time>Thu 10/1<br>5 PM</time><div><strong>Made in Muncie — chamber ribbon cutting</strong><span>New studio location</span><span class="demand">13+ interested, up from 10+</span></div></li>
+              <li><time>Fri 9/25<br>6–8 PM</time><div><strong>Kiln Creations — Lil Ghouls Spooky Season Bingo</strong><span class="demand">6+ interested</span></div></li>
+              <li><time>Sun 9/27<br>5–7 PM</time><div><strong>Kiln Creations — Retro Halloween Portrait Tray</strong><span>$42 · 7+ interested</span></div></li>
+              <li><time>Sat 9/26<br>6 PM</time><div><strong>Kiln Creations — Over the Garden Wall silkscreen</strong><span class="demand">5+ interested</span></div></li>
+              <li><time>Sat 9/19</time><div><strong>Oh Slip — Book Swap and Paint Night</strong><span>Ran this week</span></div></li>
+              <li><time>Tue 9/22</time><div><strong>Oh Slip — Hand Built Clay Cauldron</strong></div></li>
+              <li><time>Fri 9/25<br>5–7 PM</time><div><strong>Oh Slip — Cup of Ambition</strong><span>$30</span></div></li>
+              <li><time>Sat 9/26</time><div><strong>Oh Slip — Adult Wheel Throwing</strong></div></li>
+              <li><time>Sun 9/27<br>11–3</time><div><strong>Oh Slip — Pumpkins, Pottery &amp; Pop-Ups</strong></div></li>
+              <li><time>Tue 9/29</time><div><strong>Oh Slip — Vintage Christmas Tree class</strong></div></li>
+              <li><time>Sat 10/3</time><div><strong>Oh Slip — October Kids Day</strong></div></li>
+              <li class="home"><time>Tue 9/22</time><div><strong>Fired Arts — “Moon Lit” canvas workshop</strong></div></li>
+              <li class="home"><time>Thu 9/24</time><div><strong>Fired Arts — Kid’s Club Wooden Spoon</strong></div></li>
+              <li class="home"><time>Tue 9/29</time><div><strong>Fired Arts — “Cactus in Bloom”</strong></div></li>
+              <li class="home"><time>Oct 24–<br>Dec 13</time><div><strong>Fired Arts — vintage tree holiday series</strong></div></li>
+              <li><time>Fri 9/25</time><div><strong>uPaint — Western Painting Party</strong><span>$7 + pottery</span></div></li>
+              <li><time>Oct 24–25</time><div><strong>uPaint — Swiftie Painting Party</strong><span>$15 reservation + pottery; bracelet bar, trivia and snacks</span></div></li>
+              <li><time>Wed 9/23<br>11 AM</time><div><strong>All Fired Up! — fall Story Time</strong></div></li>
+            </ul></article>
+          </div>
+        </section>
+
+        <section class="strategy" aria-labelledby="strategy-title-latest">
+          <div class="strategy-head"><h2 id="strategy-title-latest">Fired Arts: next moves</h2><p>Five prioritized moves grounded in this week’s public competitive activity.</p></div>
+          <ol class="moves">
+            <li><span class="move-no">01</span><h3>Post the Pirate recap</h3><p>Do it this week. Kiln and Elemental win engagement from customer-work posts; Fired Arts’ only post showed 0 likes, and the pirate crowd remains unseen.</p></li>
+            <li><span class="move-no">02</span><h3>Name a weekly ritual</h3><p>Try a Tuesday canvas club with a collectible stamp or pin per visit, adapting Kiln’s Sunday Social and charm cadence into a retention habit.</p></li>
+            <li><span class="move-no">03</span><h3>Counter the pop-up</h3><p>Host a holiday artisan market tied to the vintage tree series, Oct 24–Dec 13. Oh Slip’s Sept 27 pop-up is the one play Fired Arts does not currently run.</p></li>
+            <li><span class="move-no">04</span><h3>Audit the calendar</h3><p>Check firedartsstudio.com listings now and confirm dates for F*R*I*E*N*D*S night and Grinchy Kid’s Night Out. Don’t repeat Made in Muncie’s old-address mismatch.</p></li>
+            <li><span class="move-no">05</span><h3>Watch two dates</h3><p>Study Made in Muncie’s Oct 1 ribbon cutting and uPaint’s Oct 24–25 Swiftie party. The Friends-themed night is Fired Arts’ natural answer to the viral-theme test.</p></li>
+          </ol>
+        </section>
+
+        <section class="source-panel" aria-label="Reviews, method and limitations">
+          <div><h3>Reviews this week</h3><p>No new reviews could be verified because public review dates were not exposed, and no studio responses surfaced. Aggregates remain: Fired Arts ~4.7–4.8; Kiln ~4.7 Google / 5.0 own site; All Fired Up! 4.7 (261); Made in Muncie 4.9 (167); Color Me Mine Carmel 4.3 (91); Pottery by You &amp; More 4.8 (150); Elemental 4.9 (12); no indexed rating for Oh Slip; none surfaced for MIYO.</p></div>
+          <div class="home-summary"><h3>Home-team read</h3><p><strong>6</strong> reach · <strong>6</strong> promotional effort · <strong>6</strong> digital storefront. Fired Arts held reach and storefront, while promotional effort fell two points versus the baseline.</p></div>
+          <div><h3>How the scores were built</h3><p>Analytical ratings from verified public studio websites, Instagram activity and publicly exposed event signals during Sept 19–21, 2026. Promotional effort intentionally ignores audience size and engagement totals.</p></div>
+          <div><h3>Data caveat</h3><p>Exact Facebook counts were login-walled, so only clearly labeled rounded carryovers appear. Instagram counts are exact for both dates. Event interest totals are minimum publicly visible figures.</p></div>
+        </section>
+      </div>
+
+      <div class="week-pane" data-week-pane="2026-09-19" hidden>
+        <section class="scorecards" aria-label="Sept 19 baseline ranking scorecards">
+          <article class="scorecard" data-category="reach"><div class="card-head"><span class="card-number">01</span><h2>Social media reach</h2><p class="definition">Audience size, visibility and posting cadence. Public engagement signals inform the score.</p></div><div class="chart-wrap"><svg class="chart" data-week="2026-09-19" data-chart="reach" role="img"></svg></div></article>
+          <article class="scorecard" data-category="effort"><div class="card-head"><span class="card-number">02</span><h2>Promotional effort</h2><p class="definition">How clearly and consistently the studio gets the word out—without rewarding follower size or likes.</p></div><div class="chart-wrap"><svg class="chart" data-week="2026-09-19" data-chart="effort" role="img"></svg></div></article>
+          <article class="scorecard" data-category="storefront"><div class="card-head"><span class="card-number">03</span><h2>Digital storefront</h2><p class="definition">Website usefulness, pricing transparency and how easily a new customer can book.</p></div><div class="chart-wrap"><svg class="chart" data-week="2026-09-19" data-chart="storefront" role="img"></svg></div></article>
+        </section>
+        <section class="strategy" aria-labelledby="strategy-title-baseline">
+          <div class="strategy-head"><h2 id="strategy-title-baseline">Fired Arts: baseline moves</h2><p>Five priorities from the first ranked competitive sweep.</p></div>
+          <ol class="moves">
+            <li><span class="move-no">01</span><h3>Build reel cadence</h3><p>Post 3–4 reels each week around kiln openings, process clips and customer pieces to address low Instagram engagement.</p></li>
+            <li><span class="move-no">02</span><h3>Create a return ritual</h3><p>Test a recurring collector pin or stamp-card mechanic inspired by Kiln Creations’ Sunday Social charms.</p></li>
+            <li><span class="move-no">03</span><h3>Use hard deadlines</h3><p>Run short seasonal bisque clearances with firm end dates, following All Fired Up!’s three-day BOGO cadence.</p></li>
+            <li><span class="move-no">04</span><h3>Host a maker market</h3><p>Counter Oh Slip’s artisan pop-up with a holiday maker market at Fired Arts.</p></li>
+            <li><span class="move-no">05</span><h3>Simplify the storefront</h3><p>Consolidate the Wix and Occasion booking paths, then feature “No studio fee for regular walk-in painting—pieces $10–$30.” A $5/day fee applies to return visits.</p></li>
+          </ol>
+        </section>
+        <section class="source-panel" aria-label="Baseline method and limitations">
+          <div><h3>How the scores were built</h3><p>Analytical ratings from the first ranked PYOP competitor sweep, using verified public studio websites and social-profile activity during Sept 12–19, 2026. Promotional effort intentionally ignores audience size and engagement totals.</p></div>
+          <div class="home-summary"><h3>Home-team read</h3><p><strong>6</strong> reach · <strong>8</strong> promotional effort · <strong>6</strong> digital storefront. Promotional effort was the strongest baseline showing.</p></div>
+          <div><h3>Data caveat</h3><p>Exact Facebook follower counts and event Interested/Going totals were login-walled. Where social reach used Facebook context, the sweep relied on rounded provider metadata; Instagram counts were exact.</p></div>
+          <div><h3>Reading the leaderboard</h3><p>Ties retain the same rank. Bars begin at zero, and every panel uses the same 0–10 axis so lengths stay directly comparable.</p></div>
+        </section>
+      </div>
+    </main>
+
+    <script>
+      const HOME = "Fired Arts Studio";
+      const STUDIOS = ["Fired Arts Studio", "Oh Slip Ceramics", "Kiln Creations", "uPaint Pottery Studio", "Color Me Mine Carmel", "Pottery by You & More", "All Fired Up!", "Made in Muncie", "Elemental Art Studio", "MIYO"];
+      const weekLabels = { "2026-10-12": "Week 05 · Oct 5–12, 2026", "2026-10-05": "Week 04 · Sept 28–Oct 5, 2026", "2026-09-28": "Week 03 · Sept 21–28, 2026", "2026-09-21": "Week 02 · Sept 19–21, 2026", "2026-09-19": "Week 01 · Sept 12–19, 2026" };
+      const shortWeekLabels = { "2026-09-19": "Sept 19", "2026-09-21": "Sept 21", "2026-09-28": "Sept 28", "2026-10-05": "Oct 5", "2026-10-12": "Oct 12" };
+      const data = {
+        "2026-09-19": { reach: [6,4,9,7,3,5,8,8,3,2], effort: [8,8,9,7,2,4,7,6,5,1], storefront: [6,6,9,8,5,3,6,6,4,4] },
+        "2026-09-21": { reach: [6,4,9,7,3,5,7,8,4,2], effort: [6,5,9,4,2,3,5,5,6,1], storefront: [6,6,9,8,5,3,6,5,4,4] },
+        "2026-09-28": { reach: [5,3,7,8,3,6,7,8,3,2], effort: [7,6,10,8,1,6,8,6,5,1], storefront: [6,7,8,8,5,3,5,5,4,4] },
+        "2026-10-05": { reach: [5,3,8,6,2,4,8,9,3,3], effort: [7,7,9,7,2,3,6,8,5,2], storefront: [5,6,8,8,4,3,5,5,5,3] },
+        "2026-10-12": { reach: [5,3,9,6,3,4,7,9,4,2], effort: [8,6,9,6,4,4,6,7,5,3], storefront: [5,6,8,8,4,3,5,4,5,3] }
+      };
+      const trendData = {
+        "2026-09-19": { reach: [6,4,9,7,3,5,8,8,3,2], effort: [8,8,9,7,2,4,7,6,5,1], storefront: [6,6,9,8,5,3,6,6,4,4] },
+        "2026-09-21": { reach: [6,4,9,7,3,5,8,8,3,2], effort: [8,8,9,7,2,4,7,6,5,1], storefront: [6,6,9,8,5,3,6,6,4,4] },
+        "2026-09-28": { reach: [6,4,9,7,3,5,8,8,3,2], effort: [8,8,9,7,2,4,7,6,5,1], storefront: [6,6,9,8,5,3,6,6,4,4] },
+        "2026-10-05": { reach: [5,3,8,6,2,4,8,9,3,3], effort: [7,7,9,7,2,3,6,8,5,2], storefront: [5,6,8,8,4,3,5,5,5,3] },
+        "2026-10-12": { reach: [5,3,9,6,3,4,7,9,4,2], effort: [8,6,9,6,4,4,6,7,5,3], storefront: [5,6,8,8,4,3,5,4,5,3] }
+      };
+      const rationales = {
+        "2026-10-12": {
+          reach: ["+1 to 536; eight posts, but the best drew only 4 likes and comments were near zero.","Instagram handle unverifiable; no public social presence.","+19 to 2,317; the Construction Cone Day carousel drew 45 likes, the sweep’s top post.","Largest base at 3,048 but net −2; nine posts, with a 28-like best.","Net −3, an accelerating bleed; nine posts after dormancy drew 0–1 likes each.","+2, but near-silent.","+7 to 1,986; the employee spotlight drew 20 likes and 4 comments.","+30, the biggest gain; the plates-vs-bowls post drew 41 likes.","Flat at 448; four posts and zero comments.","Net −1; one post drew 1 like."],
+          effort: ["Eight posts, First Friday recap reels, a weekly schedule card, an audience vote and Birch Trees Oct 20; dragged by duplicate Dec 5, dateless Grinchy and no website recap.","Website calendar maintained, with zero social distribution.","31 posts, two new priced Halloween events, a celebrity-invite reel, group-booking and email-list pushes, and a community partnership.","Nine posts; detailed Villain’s Party, a second ornament session, Friendsgiving Nov 20, Black Friday and Cyber Monday.","Nine posts broke a two-month dormancy and pushed holiday parties, but engagement stayed at zero.","A cryptic deadline post plus a weekly Google-review loop.","Halloween BOGO pre-sale, a social-friends exclusive, scarcity framing and an employee spotlight.","Smart Fall Break hours play and a new-address pin; dragged by unfixed address and 404 hygiene.","Four posts and a winter-wonderland tease; steady.","Second post in two weeks after months dormant."],
+          storefront: ["Organized events page with Buy Tickets, but prices stay hidden until click; Dec 5 appears twice, Grinchy is dateless with the old address for a third week, and there is no FAQ page.","Homepage pricing is transparent—$60/month, $25 Clay Lab and $5 greenware—but November Kids Day is duplicated.","Prices of $36–68 appear in captions with Occasion booking, but there is no single pricing page.","Transparent $5–80 pricing, dated calendar with prices and Eventbrite booking.","FAQ literally says “Coming Soon”; reservations cover two event types only.","No calendar, pricing or booking; FAQ returns a 404.","Placefull canvas bookings, but the studio fee is not on the site.","Old address remains on the homepage, Experience page and Instagram profile; the Instagram website link returns a 404, creating real booking risk.","No website, but fees and pottery prices are public: $8/$6 and $5–35.","Hours-only Wix site with call-only booking."]
+        },
+        "2026-10-05": {
+          reach: ["+1 to 535; four posts, with the top post at 5 likes.","69 followers, +2; zero posts, with news limited to the website.","2,298 followers, +2; 24 posts made it the week’s highest-output account.","3,050 followers but flat; eight posts, with a 33-like best.","901 followers, net −1; the only loss and dormant since Aug 5.","1,943 followers but only one caption-less story all week.","+8; the shipment reel drew 17 likes and the cosmic bisque line 18.","+27 and a 244-like ribbon-cutting recap—the sweep’s top post.","448 followers, flat; two low-traction posts.","674 followers, flat; its first post in months."],
+          effort: ["18 events on site, nine new; held back by no Oct 2 recap and a dateless Grinchy listing.","Seven new website sessions, but zero social posts.","24 posts, priced captions, an audience poll turned into Silly Goose Night, and repeated party pushes.","Eight posts, a spooky-events roundup and a corrected Oct 23 Villain’s Party date.","Standing deals only.","Near-silent; the Oct 16 party still rides on last week’s post.","Behind-the-scenes reel and cosmic line, but no promotion after the flash sale.","Announced and recapped the ribbon cutting in one week, plus humor posts.","Two posts: hours plus a closure notice.","First post in months and a site update."],
+          storefront: ["Organized events page and Buy Ticket buttons, but no prices on listings; Grinchy shows the old address.","$60/month membership and $25 Clay Lab on the homepage; the Kids Day entry is duplicated.","Event prices of $45–68 appear in captions with Occasion booking, but there is no price page.","Transparent $5–80 all-inclusive pricing, with Eventbrite two clicks away.","Reservations for two events only; no pottery pricing.","No calendar or pricing; walk-in only.","Placefull canvas-party booking, with no homepage prices.","FAQ gives spend ranges, but the old address appears throughout the site.","No website, but pricing is fully public: $8/$6 fee and $5–35 pottery.","One-page Wix site with hours only and call-only booking."]
+        },
+        "2026-09-21": {
+          reach: ["534 IG, +1; one evergreen canvas promo this week, with no engagement shown.","Flat at 67 IG; no new posts since Sept 16.","7 IG posts in 2 days, best engagement of the set, and editorial pickup in Carmel’s weekly list.","Largest IG following at 3,046, but only one substantive post this window.","Net −1 follower; dormant for about 6 weeks.","1,938 IG, +2, but no new posts and a static website.","Large combined reach—about 7.5K FB and 1,959 IG—but silent since Sept 19.","Biggest IG gain at +8; strong per-post engagement and ribbon-cutting buzz at the new location.","Two genuine posts with modest engagement; small following of 446.","Dormant since May; flat at 674."],
+          effort: ["One “canvas every day” promo with a gallery link; solid information, but no event energy.","No new posts since Sept 16, though the site holds a strong slate: cauldron Sept 22, Cup of Ambition Sept 25 and pop-up Sept 27.","Relentless: new kid bingo event, educational clay post, clay-club promo and partnership push.","One “Happy Monday” photo post, with zero promo energy.","Six-week-dormant account.","No new posts; static site.","Nothing new posted; no follow-up after the flash sale ended.","Nothing new posted; ribbon-cutting buzz is building off-site.","Two real community posts with genuine warmth.","No posts since May."],
+          storefront: ["GetOccasion booking, canvas gallery and a calendar booked through December.","Dated event list with prices—such as the $30 Cup of Ambition—and a vendor Google Form.","Full calendar, classes and a clear booking path.","Eventbrite plus a studio calendar; prices are visible.","Standard franchise page with stale news items.","Static site; no event listings or clear booking.","Events page is live with a story-time listing; functional but thin.","Site still shows the former studio address during an open move to its new location; no events calendar.","No real website; the Facebook page doubles as the site.","Wix site with hours, parties and classes only; no events page."]
+        },
+        "2026-09-28": {
+          reach: ["Flat at 534; six posts, with the top post at 8 likes.","Flat at 67, with zero Instagram posts; news appeared only on the website.","2,296, +4; a relentless 24-post cadence, though engagement per post was thin.","Largest Instagram audience at 3,050, +4; a 65-like short-staffed reel outperformed rivals’ promos.","+2 to 902, but silent since Aug 5; the growth is residual.","1,943, +5; the Halloween party announcement carried the week.","+12 to 1,971, the second-biggest gain; a 24-like kiln carousel led its promo posts.","+18, the biggest gain; its new-location post drew 113 likes, the sweep’s strongest engagement.","+2 to 448; one reel kept a pulse.","Flat at 674, with zero posts; Facebook has been dormant since spring."],
+          effort: ["Scarecrow Hunt partnership official on site and six Christmas tree dates; dragged down by the dateless Grinchy listing and zero recaps.","Zero Instagram posts, but four new events plus a membership push on the website calendar.","24 posts; every event had date, time, price and CTA. Launched Kiln Kitchen, pushed a corporate showcase and drove its email list.","October slate fully loaded on the site calendar; every event post carried sign-up links.","No posts in about 7.5 weeks; homepage news remains from April.","Detailed Midnight Madness Halloween party announcement plus a stoneware push.","Three-day fall/Halloween flash sale with urgency, scarcity, mention-this-post redemption and tag-a-friend sharing.","Strong relocation post, but no ribbon-cutting reminder; the website still shows the old address.","One reel, fall showcases and a Paint-Your-Partner repeat tease.","No posts; Facebook has been dormant since May."],
+          storefront: ["GetOccasion works, but the Grinchy listing is dateless and missing from the workshops page.","Transparent pricing: $60/month membership, $25 Clay Lab and $5 greenware cleaning.","GetOccasion booking on every event post, but no homepage prices.","Full event calendar with dates and prices; homepage pieces run $5–80.","Fees are transparent at $10/$6, but nothing is new since spring.","No event calendar or pricing; the Halloween event appears only on Instagram.","No prices on the homepage.","Website still shows the former studio address days after the move.","No standalone site; Facebook is the web presence, with fees public.","Hours only, no prices, and call-to-book."]
+        }
+      };
+      const followerSeries = {
+        "2026-09-21": [
+          [0,533,534,1],[1,67,67,0],[2,2292,2292,0],[3,3044,3046,2],[4,901,900,-1],[5,1936,1938,2],[6,1957,1959,2],[7,2079,2087,8],[8,445,446,1],[9,674,674,0]
+        ],
+        "2026-09-28": [
+          [0,534,534,0],[1,67,67,0],[2,2292,2296,4],[3,3046,3050,4],[4,900,902,2],[5,1938,1943,5],[6,1959,1971,12],[7,2087,2105,18],[8,446,448,2],[9,674,674,0]
+        ],
+        "2026-10-05": [
+          [0,534,535,1],[1,67,69,2],[2,2296,2298,2],[3,3050,3050,0],[4,902,901,-1],[5,1943,1943,0],[6,1971,1979,8],[7,2105,2132,27],[8,448,448,0],[9,674,674,0]
+        ],
+        "2026-10-12": [
+          [0,535,536,1],[2,2298,2317,19],[3,3050,3048,-2],[4,901,898,-3],[5,1943,1945,2],[6,1979,1986,7],[7,2132,2162,30],[8,448,448,0],[9,674,673,-1]
+        ]
+      };
+      Object.keys(followerSeries).forEach(week => followerSeries[week] = followerSeries[week].map(([i,from,to,delta]) => ({ name: STUDIOS[i], from, to, delta })));
+      const titles = { reach: "Social media reach", effort: "Promotional effort", storefront: "Digital storefront" };
+      const NS = "http://www.w3.org/2000/svg";
+      const svgEl = (name, attrs = {}, text = "") => { const el = document.createElementNS(NS, name); Object.entries(attrs).forEach(([key, value]) => el.setAttribute(key, value)); if (text !== "") el.textContent = text; return el; };
+      const rankFor = (scores, score) => 1 + scores.filter(value => value > score).length;
+      const rankedIndices = scores => STUDIOS.map((_, index) => index).sort((a, b) => scores[b] - scores[a] || a - b);
+      const labelLines = name => ({ "Fired Arts Studio":["Fired Arts","Studio"], "Oh Slip Ceramics":["Oh Slip","Ceramics"], "uPaint Pottery Studio":["uPaint Pottery","Studio"], "Pottery by You & More":["Pottery by You","& More"], "Color Me Mine Carmel":["Color Me Mine","Carmel"], "Elemental Art Studio":["Elemental Art","Studio"] }[name] || [name]);
+
+      function renderChart(svg) {
+        const week = svg.dataset.week, key = svg.dataset.chart, scores = data[week][key], order = rankedIndices(scores);
+        const width = Math.max(290, Math.round(svg.getBoundingClientRect().width)), height = 512, compact = width < 430;
+        const left = compact ? 122 : 160, right = compact ? 30 : 36, top = 34, bottom = 16, plotWidth = Math.max(100, width-left-right), rowHeight = (height-top-bottom)/STUDIOS.length, barHeight = compact ? 15 : 17;
+        svg.replaceChildren(); svg.setAttribute("viewBox",`0 0 ${width} ${height}`);
+        const titleId=`${week}-${key}-title`, descId=`${week}-${key}-desc`; svg.setAttribute("aria-labelledby",`${titleId} ${descId}`);
+        svg.append(svgEl("title",{id:titleId},`${titles[key]} scores for ${week}`),svgEl("desc",{id:descId},order.map(index=>`${STUDIOS[index]}: ${scores[index]} out of 10`).join("; ")));
+        [0,2,4,6,8,10].forEach(tick=>{ const x=left+(tick/10)*plotWidth; svg.append(svgEl("line",{x1:x,x2:x,y1:top-9,y2:height-bottom,class:tick===0?"baseline":"grid-line"}),svgEl("text",{x,y:14,"text-anchor":tick===0?"start":tick===10?"end":"middle",class:"axis-text"},String(tick))); });
+        order.forEach((studioIndex,rowIndex)=>{ const name=STUDIOS[studioIndex], score=scores[studioIndex], isHome=name===HOME, y=top+rowIndex*rowHeight, cy=y+rowHeight/2, barY=cy-barHeight/2, scoreWidth=(score/10)*plotWidth;
+          if(isHome) svg.append(svgEl("rect",{x:2,y:y+2,width:width-4,height:rowHeight-4,rx:7,class:"home-ring"}));
+          svg.append(svgEl("text",{x:4,y:cy+3,class:"rank-label"},`#${rankFor(scores,score)}`));
+          const lines=labelLines(name), labelX=compact?25:29, studioText=svgEl("text",{x:labelX,y:lines.length>1?cy-2:cy+4,class:`studio-label${isHome?" home":""}`}); lines.forEach((line,j)=>studioText.append(svgEl("tspan",{x:labelX,dy:j===0?0:12},line))); svg.append(studioText);
+          svg.append(svgEl("rect",{x:left,y:barY,width:plotWidth,height:barHeight,rx:barHeight/2,class:"track"}),svgEl("rect",{x:left,y:barY,width:scoreWidth,height:barHeight,rx:barHeight/2,class:`bar${isHome?" home":score===Math.max(...scores)?" leader":""}`}),svgEl("text",{x:Math.min(width-4,left+scoreWidth+7),y:cy+4,class:"score-label"},String(score)));
+        });
+      }
+
+      function renderRationales(){ document.querySelectorAll("[data-rationales]").forEach(list=>{ const week=list.dataset.week, key=list.dataset.rationales, copy=rationales[week]?.[key]; if(!copy)return; list.replaceChildren(...rankedIndices(data[week][key]).map(i=>{ const name=STUDIOS[i], li=document.createElement("li"); if(name===HOME)li.className="home"; const score=document.createElement("span"); score.className="score"; score.textContent=data[week][key][i]; const body=document.createElement("div"), strong=document.createElement("strong"), p=document.createElement("p"); strong.textContent=name; p.textContent=copy[i]; body.append(strong,p); li.append(score,body); return li; })); }); }
+
+      function renderFollowerChart(svg){
+        const week=svg.dataset.deltaWeek, followers=followerSeries[week]; if(!followers)return;
+        const width=Math.max(290,Math.round(svg.getBoundingClientRect().width)),height=510,compact=width<520,left=compact?122:165,right=compact?52:100,top=34,bottom=16,plotWidth=Math.max(110,width-left-right),rowHeight=(height-top-bottom)/followers.length;
+        const minDelta=Math.min(0,...followers.map(d=>d.delta)),maxDelta=Math.max(1,...followers.map(d=>d.delta)),negativeShare=minDelta<0?.12:0,zeroX=left+plotWidth*negativeShare,positiveWidth=plotWidth*(1-negativeShare),negativeWidth=plotWidth*negativeShare;
+        svg.replaceChildren(); svg.setAttribute("viewBox",`0 0 ${width} ${height}`); const previous=week==="2026-10-12"?"Oct 5":week==="2026-10-05"?"Sept 28":week==="2026-09-28"?"Sept 21":"Sept 19";
+        svg.append(svgEl("title",{},`Instagram follower net change from ${previous} to ${shortWeekLabels[week]}`),svgEl("desc",{},followers.map(d=>`${d.name}: ${d.from} to ${d.to}, ${d.delta>=0?"+":""}${d.delta}`).join("; ")));
+        const step=maxDelta>10?6:2,ticks=[]; if(minDelta<0)ticks.push(minDelta); for(let t=0;t<=maxDelta;t+=step)ticks.push(t); if(ticks[ticks.length-1]!==maxDelta)ticks.push(maxDelta);
+        ticks.forEach(tick=>{ const x=tick<0?zeroX-(Math.abs(tick)/Math.abs(minDelta))*negativeWidth:zeroX+(tick/maxDelta)*positiveWidth; svg.append(svgEl("line",{x1:x,x2:x,y1:top-9,y2:height-bottom,class:tick===0?"baseline":"grid-line"}),svgEl("text",{x,y:14,"text-anchor":"middle",class:"axis-text"},tick>0?`+${tick}`:String(tick))); });
+        followers.forEach((d,index)=>{ const isHome=d.name===HOME,y=top+index*rowHeight,cy=y+rowHeight/2,barHeight=compact?14:17; if(isHome)svg.append(svgEl("rect",{x:2,y:y+2,width:width-4,height:rowHeight-4,rx:7,class:"home-ring"})); const lines=labelLines(d.name),studioText=svgEl("text",{x:4,y:lines.length>1?cy-2:cy+4,class:`studio-label${isHome?" home":""}`}); lines.forEach((line,j)=>studioText.append(svgEl("tspan",{x:4,dy:j===0?0:12},line))); svg.append(studioText); const barWidth=d.delta<0?(Math.abs(d.delta)/Math.abs(minDelta))*negativeWidth:(d.delta/maxDelta)*positiveWidth; svg.append(svgEl("rect",{x:d.delta<0?zeroX-barWidth:zeroX,y:cy-barHeight/2,width:Math.max(d.delta===0?2:barWidth,2),height:barHeight,rx:Math.min(7,barHeight/2),class:`bar${isHome?" home":d.delta<0?" loss":d.delta===maxDelta?" leader":""}`})); const label=`${d.from.toLocaleString()} → ${d.to.toLocaleString()} (${d.delta>0?"+":""}${d.delta})`; svg.append(svgEl("text",{x:width-4,y:cy+4,"text-anchor":"end",class:"score-label"},compact?`${d.delta>0?"+":""}${d.delta}`:label)); });
+      }
+
+      function spark(category,weeks,values,home){ const label=weeks.map((week,i)=>`${shortWeekLabels[week]}: ${values[i]}`).join(", "),svg=svgEl("svg",{class:"spark",viewBox:"0 0 150 48",role:"img","aria-label":`${titles[category]} — ${label}`}),y=score=>39-((score-1)/9)*30,x=i=>weeks.length===1?75:22+(i/(weeks.length-1))*106; svg.append(svgEl("line",{x1:22,y1:40,x2:128,y2:40,class:"guide"}),svgEl("polyline",{points:values.map((value,i)=>`${x(i)},${y(value)}`).join(" "),class:"trend-line"})); values.forEach((value,i)=>svg.append(svgEl("circle",{cx:x(i),cy:y(value),r:home?4:3}),svgEl("text",{x:x(i),y:Math.max(9,y(value)-7),"text-anchor":"middle"},String(value)))); return svg; }
+      function renderTrends(){ document.querySelectorAll("[data-trend-weeks]").forEach(grid=>{ const weeks=grid.dataset.trendWeeks.split(","),keys=["reach","effort","storefront"]; grid.replaceChildren(...STUDIOS.map((name,index)=>{ const row=document.createElement("article"); row.className=`trend-row${name===HOME?" home":""}`; const studio=document.createElement("div"); studio.className="trend-studio"; studio.textContent=name; if(name===HOME){const small=document.createElement("small");small.textContent="HOME TEAM";studio.append(small);} row.append(studio); keys.forEach(key=>{const cell=document.createElement("div"),label=document.createElement("b");cell.className="trend-cell";label.textContent=titles[key];cell.append(label,spark(key,weeks,weeks.map(week=>trendData[week][key][index]),name===HOME));row.append(cell);});return row;})); }); }
+      function setWeek(week){ document.querySelectorAll("[data-week-pane]").forEach(pane=>pane.hidden=pane.dataset.weekPane!==week); document.querySelectorAll("[data-week-button]").forEach(button=>button.setAttribute("aria-pressed",String(button.dataset.weekButton===week))); document.getElementById("week-eyebrow").textContent=weekLabels[week]; requestAnimationFrame(renderAll); }
+      function renderAll(){ document.querySelectorAll("svg.chart").forEach(renderChart); document.querySelectorAll("svg.delta-chart").forEach(renderFollowerChart); }
+      document.querySelectorAll("[data-week-button]").forEach(button=>button.addEventListener("click",()=>setWeek(button.dataset.weekButton)));
+      let resizeTimer; window.addEventListener("resize",()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(renderAll,90);}); renderRationales(); renderTrends(); document.fonts?.ready.then(renderAll); renderAll();
+    </script>
+  </body>
+</html>
